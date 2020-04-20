@@ -40,12 +40,12 @@ namespace DiscordBot
             return response.Data;
         }
 
-        public async static Task GetQuiz()
+        public async static Task<Quiz> GetQuiz()
         {
             var client = new RestClient("https://opentdb.com/api.php?amount=10");
             var request = new RestRequest("", DataFormat.Json);
-            var response = client.Get(request);
-           
+            var response = client.Get<Quiz>(request);
+            return response.Data;
         }
     }
 }
