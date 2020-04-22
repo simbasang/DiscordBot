@@ -42,7 +42,7 @@ namespace DiscordBot
 
         public async static Task<Quiz> GetQuiz()
         {
-            var client = new RestClient("https://opentdb.com/api.php?amount=10");
+            var client = new RestClient("https://opentdb.com/api.php?amount=3");
             var request = new RestRequest("", DataFormat.Json);
             var response = client.Get<Quiz>(request);
             return response.Data;

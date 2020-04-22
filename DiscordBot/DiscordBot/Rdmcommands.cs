@@ -43,30 +43,47 @@ namespace DiscordBot
         public async Task StartQuiz(CommandContext ctx)
         {
             var quiz = await ApiCalls.GetQuiz();
+            var participiantsAndPoints = new Dictionary<string, int>();
             int counter = 0;
             foreach (var item in quiz.results)
             {
                 counter++;
-                var list = new List<string> { item.correct_answer, item.incorrect_answers[0], item.incorrect_answers[1], item.incorrect_answers[2] };
-                
-                var question = item.question;
-                question =QuestionAndAnswer.ReplaceHtmlChars(question);
-
-                await ctx.Channel.SendMessageAsync($"question number: {counter}\n{item.question}").ConfigureAwait(false);
-
-                foreach (var awnser in list)
+                var awnserString = "";
+                var awnsers = new List<string> { item.correct_answer, item.incorrect_answers[0], item.incorrect_answers[1], item.incorrect_answers[2] };
+                foreach (var awnser in awnsers)
                 {
-                    await ctx.Channel.SendMessageAsync(awnser).ConfigureAwait(false);
-
+                    awnserString += awnser + "\n";
                 }
+
+                var question = item.question;
+                question = await QuestionAndAnswer.ReplaceHtmlChars(question);
+
+                await ctx.Channel.SendMessageAsync($"question number: {counter}\n{question}").ConfigureAwait(false);
+                
+                await ctx.Channel.SendMessageAsync(awnserString).ConfigureAwait(false);
                 var interactivity = ctx.Client.GetInteractivity();
                 var userAwnser = await interactivity.WaitForMessageAsync(x => x.Content.ToLower() == item.correct_answer.ToLower());
                 await ctx.Channel.SendMessageAsync($"{userAwnser.Result.Author.Username} delivered the right answer: {item.correct_answer}");
-                list.Clear();
-            }
 
+                if (participiantsAndPoints.ContainsKey(userAwnser.Result.Author.Username))
+                {
+                    participiantsAndPoints[userAwnser.Result.Author.Username] += 1;
+
+                }
+                else
+                {
+                    participiantsAndPoints.Add(userAwnser.Result.Author.Username, 1);
+                }
+                awnsers.Clear();
+                Thread.Sleep(1000);
+            }
+            foreach (var kvp in participiantsAndPoints)
+            {
+                await ctx.Channel.SendMessageAsync($"{kvp.Key} got: {kvp.Value} points");
+
+            }
         }
 
-        
+
     }
 }
