@@ -43,10 +43,16 @@ namespace DiscordBot
         public async Task StartQuiz(CommandContext ctx)
         {
             var quiz = await ApiCalls.GetQuiz();
+            int counter = 0;
             foreach (var item in quiz.results)
             {
+                counter++;
                 var list = new List<string> { item.correct_answer, item.incorrect_answers[0], item.incorrect_answers[1], item.incorrect_answers[2] };
-                await ctx.Channel.SendMessageAsync(item.question).ConfigureAwait(false);
+                
+                var question = item.question;
+                question =QuestionAndAnswer.ReplaceHtmlChars(question);
+
+                await ctx.Channel.SendMessageAsync($"question number: {counter}\n{item.question}").ConfigureAwait(false);
 
                 foreach (var awnser in list)
                 {
@@ -54,10 +60,13 @@ namespace DiscordBot
 
                 }
                 var interactivity = ctx.Client.GetInteractivity();
-                var userAwnser = await interactivity.WaitForMessageAsync(x => x.Channel == ctx.Channel);
+                var userAwnser = await interactivity.WaitForMessageAsync(x => x.Content.ToLower() == item.correct_answer.ToLower());
+                await ctx.Channel.SendMessageAsync($"{userAwnser.Result.Author.Username} delivered the right answer: {item.correct_answer}");
                 list.Clear();
             }
 
         }
+
+        
     }
 }
